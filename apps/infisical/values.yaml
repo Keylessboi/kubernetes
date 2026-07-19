@@ -75,8 +75,12 @@ infisical:
   affinity: {}
   # -- Tolerations definitions
   tolerations: []
-  # -- Node selector for pod placement
-  nodeSelector: {}
+  # -- Node selector for pod placement.
+  # Pinned to the amd64 node: the arm64 control-plane Pi (master-rpi) has too
+  # little memory/CPU headroom to boot the Infisical backend within Fastify's
+  # plugin-start timeout, so it crashlooped there. emphatic has the headroom.
+  nodeSelector:
+    kubernetes.io/hostname: emphatic
   # -- Topology spread constraints for multi-zone deployments
   # -- Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/
   topologySpreadConstraints: []

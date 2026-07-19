@@ -1,0 +1,78 @@
+# flannel VXLAN TX-checksum-offload fix
+#
+# Why this exists:
+#   On this cluster, cross-node pod-to-pod TCP silently blackholed while ICMP
+#   worked fine. Root cause was `tx-checksum-ip-generic` offload being enabled on
+#   the flannel.1 VXLAN interface: the kernel offloaded the inner TCP checksum on
+#   VXLAN-encapsulated packets, producing corrupt checksums that the receiving
+#   node dropped. Symptom was redis replicas (and the Infisical backend) hanging
+#   with connect ETIMEDOUT to pods on the other node.
+#
+#   k3s/flannel exposes no config knob for this, and the setting is host state on
+#   an interface flannel recreates on every boot/restart — so it is not naturally
+#   declarative. This DaemonSet is the GitOps-friendly way to enforce it: it runs
+#   on every node and reconciles the offload flag in a loop, so the fix survives
+#   reboots, flannel.1 recreation, and any node added to the cluster later.
+#
+# Wire-up: point an ArgoCD Application at apps/flannel-checksum-fix/ (directory
+#   source) to sync this manifest.
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: flannel-tx-checksum-fix
+  namespace: kube-system
+  labels:
+    app.kubernetes.io/name: flannel-tx-checksum-fix
+    app.kubernetes.io/part-of: cluster-networking
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: flannel-tx-checksum-fix
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: flannel-tx-checksum-fix
+    spec:
+      hostNetwork: true
+      # Keep this critical networking fixup from being evicted under memory
+      # pressure (the arm64 control-plane node runs close to its limit).
+      priorityClassName: system-node-critical
+      # Must run on every node, including the control-plane, whatever its taints.
+      tolerations:
+        - operator: Exists
+      terminationGracePeriodSeconds: 5
+      containers:
+        - name: ethtool
+          image: alpine:3.20
+          command:
+            - /bin/sh
+            - -c
+            - |
+              apk add --no-cache ethtool >/dev/null 2>&1
+              echo "flannel-tx-checksum-fix: reconcile loop starting on $(hostname)"
+              while true; do
+                if ip link show flannel.1 >/dev/null 2>&1; then
+                  if ethtool -K flannel.1 tx-checksum-ip-generic off >/dev/null 2>&1; then
+                    echo "$(date -Is) flannel.1 tx-checksum-ip-generic ensured off"
+                  else
+                    echo "$(date -Is) WARN: failed to set offload on flannel.1"
+                  fi
+                else
+                  echo "$(date -Is) flannel.1 not present yet, waiting"
+                fi
+                sleep 60
+              done
+          # ethtool -K uses the SIOCETHTOOL ioctl, which needs CAP_NET_ADMIN;
+          # no full privileged mode required.
+          securityContext:
+            capabilities:
+              add: ["NET_ADMIN"]
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 5m
+              memory: 16Mi
+            limits:
+              memory: 32Mi
