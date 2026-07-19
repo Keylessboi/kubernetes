@@ -99,15 +99,13 @@ infisical:
   # --     value: /etc/ssl/certs/ca-certificates.crt
 #  extraEnv: []
   extraEnv:
-    - name: REDIS_HOST
-      value: redis.database.svc.cluster.local
-    - name: REDIS_PORT
-      value: "6379"
     - name: REDIS_PASSWORD
       valueFrom:
         secretKeyRef:
           name: redis-creds
           key: redis-password
+    - name: REDIS_URL
+      value: redis://:$(REDIS_PASSWORD)@redis.database.svc.cluster.local:6379
 
 
   # -- Pod-level security context for the Infisical pod. Sets only `fsGroup` so mounted volumes
