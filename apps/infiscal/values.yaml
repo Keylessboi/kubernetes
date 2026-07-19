@@ -194,6 +194,7 @@ ingress:
     #   hosts:
     #     - some.domain.com
 
+
 postgresql:
   # -- Enables an in-cluster PostgreSQL deployment. To achieve HA for Postgres, we recommend deploying https://github.com/zalando/postgres-operator instead.
   enabled: false
@@ -256,6 +257,8 @@ redis:
 # -- Configuration for the bundled ingress-nginx subchart (only applies when ingress.nginx.enabled=true)
 ingress-nginx:
   controller:
+    service:
+      type: NodePort
     ingressClassResource:
       # -- Use a unique IngressClass name so the bundled controller only serves Infisical's Ingress,
       # -- not other Ingresses in the cluster that use the common "nginx" class.
