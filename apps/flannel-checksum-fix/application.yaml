@@ -1,0 +1,25 @@
+# ArgoCD Application for the flannel VXLAN checksum fix.
+# Kept in-repo for reference; apply once with `kubectl apply -f` (the Application
+# object lives in the argocd namespace, like the other apps on this cluster).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: flannel-checksum-fix
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Keylessboi/kubernetes.git
+    targetRevision: HEAD
+    path: apps/flannel-checksum-fix
+    directory:
+      # Do not treat application.yaml (this file) as a manifest to deploy into
+      # the cluster; only sync the DaemonSet.
+      include: 'daemonset.yaml'
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

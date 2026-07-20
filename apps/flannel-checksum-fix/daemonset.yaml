@@ -44,13 +44,16 @@ spec:
         - operator: Exists
       terminationGracePeriodSeconds: 5
       containers:
+        # netshoot ships ethtool + ip preinstalled. This matters: the pod must
+        # NOT depend on in-pod DNS or package mirrors to run, because the very
+        # thing it fixes (cross-node traffic) is what pods on the far node need
+        # to reach CoreDNS. Image pull uses node-level DNS, which is unaffected.
         - name: ethtool
-          image: alpine:3.20
+          image: docker.io/nicolaka/netshoot:v0.13
           command:
             - /bin/sh
             - -c
             - |
-              apk add --no-cache ethtool >/dev/null 2>&1
               echo "flannel-tx-checksum-fix: reconcile loop starting on $(hostname)"
               while true; do
                 if ip link show flannel.1 >/dev/null 2>&1; then
