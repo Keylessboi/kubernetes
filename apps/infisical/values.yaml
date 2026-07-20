@@ -75,12 +75,8 @@ infisical:
   affinity: {}
   # -- Tolerations definitions
   tolerations: []
-  # -- Node selector for pod placement.
-  # Pinned to the amd64 node: the arm64 control-plane Pi (master-rpi) has too
-  # little memory/CPU headroom to boot the Infisical backend within Fastify's
-  # plugin-start timeout, so it crashlooped there. emphatic has the headroom.
-  nodeSelector:
-    kubernetes.io/hostname: emphatic
+  # -- Node selector for pod placement
+  nodeSelector: {}
   # -- Topology spread constraints for multi-zone deployments
   # -- Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/
   topologySpreadConstraints: []
@@ -101,15 +97,25 @@ infisical:
   # -- extraEnv:
   # --   - name: NODE_EXTRA_CA_CERTS
   # --     value: /etc/ssl/certs/ca-certificates.crt
-#  extraEnv: []
-  extraEnv:
-    - name: REDIS_PASSWORD
-      valueFrom:
-        secretKeyRef:
-          name: redis-creds
-          key: redis-password
-    - name: REDIS_URL
-      value: redis://:$(REDIS_PASSWORD)@redis-master.redis.svc.cluster.local:6379
+  # DB/Redis connection strings are injected here. extraEnv renders last, so it
+  # overrides the chart's built-in DB_CONNECTION_URI/REDIS_URL (which are built
+  # from plaintext auth.password values). Passwords are pulled from existing
+  # secrets created out-of-band on the cluster, keeping them out of git.
+#  extraEnv:
+#    - name: DB_PASSWORD
+#      valueFrom:
+#        secretKeyRef:
+#          name: infisical-postgres-creds
+#          key: password
+#    - name: DB_CONNECTION_URI
+#      value: postgresql://infisical:$(DB_PASSWORD)@postgresql:5432/infisicalDB
+#    - name: REDIS_PASSWORD
+#      valueFrom:
+#        secretKeyRef:
+#          name: infisical-redis-creds
+#          key: redis-password
+#    - name: REDIS_URL
+#      value: redis://default:$(REDIS_PASSWORD)@redis-master:6379
 
 
   # -- Pod-level security context for the Infisical pod. Sets only `fsGroup` so mounted volumes
@@ -199,7 +205,7 @@ ingress:
 
 postgresql:
   # -- Enables an in-cluster PostgreSQL deployment. To achieve HA for Postgres, we recommend deploying https://github.com/zalando/postgres-operator instead.
-  enabled: false
+  enabled: true
   # -- PostgreSQL resource name
   name: "postgresql"
   # -- Full name override for PostgreSQL resources
@@ -214,13 +220,20 @@ postgresql:
   auth:
     # -- Database username for PostgreSQL
     username: infisical
-    # -- Password for PostgreSQL database access
-    password: root
     # -- Database name for Infisical
     database: infisicalDB
+    # -- Read all PostgreSQL passwords from an existing secret created out-of-band
+    # on the cluster, so no plaintext lives in git. auth.password is ignored.
+    existingSecret: infisical-postgres-creds
+    secretKeys:
+      adminPasswordKey: postgres-password
+      userPasswordKey: password
+    # Empty so the chart's (overridden) built-in DB_CONNECTION_URI doesn't carry
+    # the chart-default password; the real value comes from extraEnv above.
+    password: ""
 
   useExistingPostgresSecret:
-    enabled: true
+    enabled: false
     existingConnectionStringSecret:
       name: infisical-postgres
       key: connectionString
@@ -228,7 +241,7 @@ postgresql:
 
 redis:
   # -- Enables an in-cluster Redis deployment
-  enabled: false
+  enabled: true
   # -- Redis resource name
   name: "redis"
   # -- Full name override for Redis resources
@@ -248,8 +261,13 @@ redis:
   usePassword: true
 
   auth:
-    # -- Redis password
-    password: "mysecretpassword"
+    # -- Read the Redis password from an existing secret created out-of-band,
+    # keeping plaintext out of git.
+    existingSecret: infisical-redis-creds
+    existingSecretPasswordKey: redis-password
+    # Empty so the chart's (overridden) built-in REDIS_URL doesn't carry the
+    # chart-default password; the real value comes from extraEnv above.
+    password: ""
 
   # -- Redis deployment type (e.g., standalone or cluster)
   architecture: standalone
