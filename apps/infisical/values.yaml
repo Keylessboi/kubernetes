@@ -267,7 +267,7 @@ redis:
     existingSecretPasswordKey: redis-password
     # Empty so the chart's (overridden) built-in REDIS_URL doesn't carry the
     # chart-default password; the real value comes from extraEnv above.
-    password: ""
+#    password: ""
 
   # -- Redis deployment type (e.g., standalone or cluster)
   architecture: standalone
