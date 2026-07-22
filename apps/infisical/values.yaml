@@ -232,7 +232,7 @@ postgresql:
       userPasswordKey: password
     # Empty so the chart's (overridden) built-in DB_CONNECTION_URI doesn't carry
     # the chart-default password; the real value comes from extraEnv above.
-    password: ""
+    #password: ""
 
   useExistingPostgresSecret:
     enabled: false
