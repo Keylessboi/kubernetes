@@ -116,7 +116,9 @@ infisical:
 #          key: redis-password
 #    - name: REDIS_URL
 #      value: redis://default:$(REDIS_PASSWORD)@redis-master:6379
-
+  extraEnv:
+    - name: ALLOW_INTERNAL_IP_CONNECTIONS
+      value: "true"
 
   # -- Pod-level security context for the Infisical pod. Sets only `fsGroup` so mounted volumes
   # -- are writable by the non-root user. Other hardening lives in `containerSecurityContext`,
