@@ -219,13 +219,12 @@ postgresql:
     # -- Image repository for PostgreSQL
     repository: bitnamilegacy/postgresql
 
-  auth:
-    useExistingPostgresSecret:
-      # -- Set to true if using an existing Kubernetes secret that contains PostgreSQL connection string
-      enabled: true
-      existingConnectionStringSecret:
-        name: "infisical-postgres"
-        key: "connectionString"
+  useExistingPostgresSecret:
+    # -- Set to true if using an existing Kubernetes secret that contains PostgreSQL connection string
+    enabled: true
+    existingConnectionStringSecret:
+      name: "infisical-postgres"
+      key: "connectionString"
 
 
 redis:
