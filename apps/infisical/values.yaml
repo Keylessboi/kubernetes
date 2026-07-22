@@ -220,25 +220,14 @@ postgresql:
     repository: bitnamilegacy/postgresql
 
   auth:
-    # -- Database username for PostgreSQL
-    username: infisical
-    # -- Database name for Infisical
-    database: infisicalDB
-    # -- Read all PostgreSQL passwords from an existing secret created out-of-band
-    # on the cluster, so no plaintext lives in git. auth.password is ignored.
-    existingSecret: infisical-postgres-creds
-    secretKeys:
-      adminPasswordKey: postgres-password
-      userPasswordKey: password
-    # Empty so the chart's (overridden) built-in DB_CONNECTION_URI doesn't carry
-    # the chart-default password; the real value comes from extraEnv above.
-    #password: ""
-
-  useExistingPostgresSecret:
-    enabled: false
-    existingConnectionStringSecret:
-      name: infisical-postgres
-      key: connectionString
+    useExistingPostgresSecret:
+      # -- Set to true if using an existing Kubernetes secret that contains PostgreSQL connection string
+      enabled: true
+      existingConnectionStringSecret:
+      	# -- Kubernetes secret name containing the PostgreSQL connection string
+      	name: "infisical-postgres"
+      	# -- Key name in the Kubernetes secret that holds the connection string
+      	key: "connectionString"
 
 
 redis:
