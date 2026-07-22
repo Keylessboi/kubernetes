@@ -219,9 +219,18 @@ postgresql:
     # -- Image repository for PostgreSQL
     repository: bitnamilegacy/postgresql
 
+  auth:
+    # -- Database username for PostgreSQL
+    username: infisical
+    # -- Database name for Infisical
+    database: infisical
+    existingSecret: infisical-postgres-creds
+    secretKeys:
+      userPasswordKey: password
+
   useExistingPostgresSecret:
     # -- Set to true if using an existing Kubernetes secret that contains PostgreSQL connection string
-    enabled: true
+    enabled: false
     existingConnectionStringSecret:
       name: "infisical-postgres"
       key: "connectionString"
