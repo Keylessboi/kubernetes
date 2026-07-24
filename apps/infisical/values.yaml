@@ -214,14 +214,14 @@ postgresql:
     # -- Image repository for PostgreSQL
     repository: bitnamilegacy/postgresql
 
-  auth:
-    # -- Database username for PostgreSQL
-    username: infisical
-    # -- Database name for Infisical
-    database: infisical
-    existingSecret: infisical-postgres-creds
-    secretKeys:
-      userPasswordKey: password
+#  auth:
+#    # -- Database username for PostgreSQL
+#    username: infisical
+#    # -- Database name for Infisical
+#    database: infisical
+#    existingSecret: infisical-postgres-creds
+#    secretKeys:
+#      userPasswordKey: password
 
   useExistingPostgresSecret:
     # -- Set to true if using an existing Kubernetes secret that contains PostgreSQL connection string
@@ -252,13 +252,13 @@ redis:
   # -- Requires a password for Redis authentication
   usePassword: true
 
-  auth:
-    # -- Read the Redis password from an existing secret created out-of-band,
-    # keeping plaintext out of git.
-    existingSecret: infisical-redis-creds
-    existingSecretPasswordKey: redis-password
-    # Empty so the chart's (overridden) built-in REDIS_URL doesn't carry the
-    # chart-default password; the real value comes from extraEnv above.
+#  auth:
+#    # -- Read the Redis password from an existing secret created out-of-band,
+#    # keeping plaintext out of git.
+#    existingSecret: infisical-redis-creds
+#    existingSecretPasswordKey: redis-password
+#    # Empty so the chart's (overridden) built-in REDIS_URL doesn't carry the
+#    # chart-default password; the real value comes from extraEnv above.
 #    password: ""
 
   # -- Redis deployment type (e.g., standalone or cluster)
