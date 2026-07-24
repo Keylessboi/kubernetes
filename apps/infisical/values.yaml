@@ -102,6 +102,10 @@ infisical:
   # from plaintext auth.password values). Passwords are pulled from existing
   # secrets created out-of-band on the cluster, keeping them out of git.
   extraEnv:
+    - name: DB_CONNECTION_URI
+      value: postgresql://infisical:$(DB_PASSWORD)@postgresql:5432/infisical
+    - name: REDIS_URL
+      value: redis://default:$(REDIS_PASSWORD)@redis-master:6379
     - name: ALLOW_INTERNAL_IP_CONNECTIONS
       value: "true"
     - name: DB_PASSWORD
@@ -109,15 +113,11 @@ infisical:
         secretKeyRef:
           name: infisical-postgres-creds
           key: password
-    - name: DB_CONNECTION_URI
-      value: postgresql://infisical:$(DB_PASSWORD)@postgresql:5432/infisical
     - name: REDIS_PASSWORD
       valueFrom:
         secretKeyRef:
           name: infisical-redis-creds
           key: redis-password
-    - name: REDIS_URL
-      value: redis://default:$(REDIS_PASSWORD)@redis-master:6379
 
   # -- Pod-level security context for the Infisical pod. Sets only `fsGroup` so mounted volumes
   # -- are writable by the non-root user. Other hardening lives in `containerSecurityContext`,
