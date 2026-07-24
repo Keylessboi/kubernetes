@@ -25,3 +25,22 @@ redis:
       enabled: true
   replica:
     replicaCount: 0
+
+infisical:
+  extraEnv:
+    - name: DB_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: infisical-postgres-creds
+          key: password
+    - name: REDIS_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: infisical-redis-creds
+          key: redis-password
+    - name: DB_CONNECTION_URI
+      value: postgresql://infisical:$(DB_PASSWORD)@postgresql:5432/infisical
+    - name: REDIS_URL
+      value: redis://default:$(REDIS_PASSWORD)@redis-master:6379
+    - name: ALLOW_INTERNAL_IP_CONNECTIONS
+      value: "true"
