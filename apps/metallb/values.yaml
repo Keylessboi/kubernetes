@@ -1,0 +1,12 @@
+controller:
+  enabled: true
+  resources:
+    limits: { cpu: 100m, memory: 128Mi }
+    requests: { cpu: 100m, memory: 128Mi }
+speaker:
+  enabled: true
+  frr: { enabled: false }
+  frrk8s: { enabled: false }
+  resources:
+    limits: { cpu: 100m, memory: 128Mi }
+    requests: { cpu: 100m, memory: 128Mi }
