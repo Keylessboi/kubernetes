@@ -1,0 +1,50 @@
+image:
+  repository: ghcr.io/dani-garcia/vaultwarden
+  tag: "latest"
+  pullPolicy: Always
+
+
+replicaCount: 1
+# ======================
+# EXTERNAL POSTGRES
+# ======================
+envFrom:
+  - secretRef:
+      name: vaultwarden-secrets
+
+env:  
+
+  SIGNUPS_ALLOWED: "true"
+  SIGNUPS_VERIFY: "true"
+  
+  # Optional but useful
+  ENABLE_WEBSOCKET: "true"
+  # ROCKET_PORT: 8080               # Usually not needed
+
+# ======================
+# Persistence (for attachments, icons, etc.)
+# ======================
+persistence:
+  data:
+    enabled: true
+    size: 10Gi
+    accessMode: ReadWriteOnce
+    # storageClass: "your-storage-class"   # optional
+
+service:
+  main:
+    type: LoadBalancer          # ← Change this
+    ports:
+      http:
+        port: 8080
+
+ingress:
+  main:
+    enabled: false              # Disable ingress
+
+# Disable built-in databases
+postgresql:
+  enabled: false
+
+mariadb:
+  enabled: false
