@@ -14,7 +14,7 @@ envFrom:
 
 env:  
 
-  SIGNUPS_ALLOWED: "true"
+  SIGNUPS_ALLOWED: "false"
   SIGNUPS_VERIFY: "true"
   
   # Optional but useful
